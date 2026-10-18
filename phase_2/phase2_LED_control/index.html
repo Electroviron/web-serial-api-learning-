@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+
+    <h1>LED Control Experiment</h1>
+    
+    <p id="status">Checking browser support...</p>
+
+    <!-- connect to serial device -->
+    <div style="width: 100%; padding: 10px; display: flex; justify-content: center; align-items: center; margin-bottom: 3%;">
+        <button id="connectBtn">connect</button>
+    </div>
+    
+    <!-- LED control buttons -->
+     <button id="ledOnBtn" disabled style="padding: 3px; background-color: brown; color: white;">ON LED</button>
+     <button id="ledOffBtn"disabled style="padding: 3px; background-color: brown; color: white; margin-left: 10px;"> OFF LED</button>
+
+
+    <script src="main.js"></script>
+</body>
+</html>
