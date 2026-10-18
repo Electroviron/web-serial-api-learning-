@@ -1,507 +1,809 @@
+# Web Serial API Learning
+
+A hands-on learning journey exploring browser-to-hardware communication using the **Web Serial API**, JavaScript, and the Arduino Uno.
+
+This project explores how web technologies can communicate with physical devices, receive serial data, transmit commands, and control hardware directly from a browser.
+
+The goal is to build a strong understanding of the Web Serial API through practical experiments, progressive projects, and clear technical documentation.
+
 ## Table of Contents
 
-- [1. Project Overview](#1-project-overview)
-- [2. Learning Objectives](#2-learning-objectives)
-- [3. Repository Structure](#3-repository-structure)
-- [4. Phase 1 — Foundations](#4-phase-1--foundations)
-  - [4.1 What Is the Web Serial API?](#41-what-is-the-web-serial-api)
-  - [4.2 Understanding Serial Communication](#42-understanding-serial-communication)
-  - [4.3 Baud Rate](#43-baud-rate)
-  - [4.4 TX and RX](#44-tx-and-rx)
-  - [4.5 Bytes, Text, and Messages](#45-bytes-text-and-messages)
-  - [4.6 Browser Permissions and Security](#46-browser-permissions-and-security)
-  - [4.7 Understanding the Main API Objects](#47-understanding-the-main-api-objects)
-  - [4.8 Browser and Hardware Requirements](#48-browser-and-hardware-requirements)
-- [5. Phase 1 — Practical Experiments](#5-phase-1--practical-experiments)
-  - [5.1 Experiment 1: Establishing a Connection](#51-experiment-1-establishing-a-connection)
-  - [5.2 Experiment 2: Receiving Serial Data](#52-experiment-2-receiving-serial-data)
-- [6. Troubleshooting and Debugging](#6-troubleshooting-and-debugging)
-- [7. Current Progress](#7-current-progress)
-- [8. Phase 2 — Two-Way Communication](#8-phase-2--two-way-communication)
-- [9. References and Further Reading](#9-references-and-further-reading)
+- [Project Overview](#project-overview)
+- [Learning Objectives](#learning-objectives)
+- [Requirements](#requirements)
+- [Project Structure](#project-structure)
+- [Phase 1 — Understanding Web Serial](#phase-1--understanding-web-serial)
+  - [1. What Is the Web Serial API?](#1-what-is-the-web-serial-api)
+  - [2. Understanding Serial Communication](#2-understanding-serial-communication)
+  - [3. Browser Permissions and Security](#3-browser-permissions-and-security)
+  - [4. Web Serial API Objects](#4-web-serial-api-objects)
+  - [5. Experiment 1 — Connecting to Arduino](#5-experiment-1--connecting-to-arduino)
+  - [6. Experiment 2 — Receiving Arduino Data](#6-experiment-2--receiving-arduino-data)
+- [Phase 2 — Sending Commands and Controlling Hardware](#phase-2--sending-commands-and-controlling-hardware)
+  - [1. Sending Data to Arduino](#1-sending-data-to-arduino)
+  - [2. Experiment 1 — PING Command](#2-experiment-1--ping-command)
+  - [3. Designing a Command Protocol](#3-designing-a-command-protocol)
+  - [4. Experiment 2 — Browser-Based LED Control](#4-experiment-2--browser-based-led-control)
+  - [5. Communication Flow](#5-communication-flow)
+- [Troubleshooting](#troubleshooting)
+- [Lessons Learned](#lessons-learned)
+- [Future Roadmap](#future-roadmap)
+- [Resources](#resources)
 
 ---
 
-## 1. Project Overview
+## Project Overview
 
-The Web Serial API provides a browser interface for communicating with serial devices. It allows supported web applications to request permission to access a serial port, open a connection, and exchange data with compatible hardware.
+The Web Serial API allows supported web applications to communicate with serial devices connected to a computer.
 
-This makes it possible to build browser-based interfaces for embedded systems without relying exclusively on a desktop serial terminal.
+In this project, an Arduino Uno acts as the hardware endpoint, while a webpage running in Microsoft Edge provides the interface for communication and control.
 
-Potential applications include:
+The project began with establishing a serial connection and receiving messages from the Arduino. It then progressed to transmitting commands from JavaScript and using those commands to control a physical LED.
 
-- Live sensor monitoring dashboards.
-- Browser-based LED and actuator controls.
-- Embedded-system debugging interfaces.
-- Interactive electronics demonstrations.
-- Serial data visualization and logging.
-- Custom control panels for Arduino and ESP32 projects.
+### Current Capabilities
 
-The project follows a progressive learning approach: understand the underlying concepts, implement small experiments, investigate failures, and then build more capable applications.
+- Connect a webpage to an Arduino Uno through a serial port.
+- Receive serial messages from the Arduino in the browser.
+- Transmit text-based commands from JavaScript to the Arduino.
+- Interpret incoming commands using Arduino C++.
+- Control an LED through webpage buttons.
+- Receive acknowledgements and error messages from the Arduino.
 
-**Current hardware:** Arduino Uno  
-**Development environment:** Visual Studio Code  
-**Browser:** Microsoft Edge  
-**Languages:** HTML, CSS, JavaScript, and Arduino C/C++
+## Learning Objectives
 
-## 2. Learning Objectives
+The project aims to develop practical knowledge of:
 
-By progressing through this repository, the aim is to understand:
+- Serial communication and baud rates.
+- Browser permissions and secure contexts.
+- The Web Serial API and its streams.
+- JavaScript asynchronous programming.
+- Text encoding and byte transmission.
+- Serial command parsing in embedded firmware.
+- Hardware control through a browser interface.
+- Error handling and communication reliability.
 
-1. How serial communication connects browser applications to embedded hardware.
-2. How the Web Serial API exposes serial ports to JavaScript.
-3. How browser permissions and secure contexts protect access to hardware.
-4. How serial data is transmitted, received, decoded, and interpreted.
-5. How asynchronous JavaScript and streams handle continuous data.
-6. How to build reliable two-way communication between a webpage and a microcontroller.
-7. How to develop browser-based interfaces for practical electronics projects.
+## Requirements
 
-## 3. Repository Structure
+### Hardware
 
-The repository is organized into progressive learning phases.
+- Arduino Uno
+- USB data cable
+- Computer
+- LED
+- 220 Ω resistor or another suitable current-limiting resistor
+- Breadboard and jumper wires
+
+### Software
+
+- Microsoft Edge or another compatible desktop browser.
+- Arduino IDE.
+- Visual Studio Code or another code editor.
+- A local HTTP server, such as Python's built-in HTTP server.
+
+### Tested Configuration
+
+| Component | Configuration |
+|---|---|
+| Microcontroller board | Arduino Uno |
+| Browser | Microsoft Edge |
+| Firmware language | Arduino C++ |
+| Frontend | HTML and JavaScript |
+| Communication interface | USB serial |
+| Serial baud rate | 9600 |
+| Development environment | VS Code and Arduino IDE |
+
+---
+
+## Project Structure
+
+The repository is organized around progressive learning phases.
 
 ```text
 web-serial-api-learning/
-│
 ├── README.md
-│
 ├── Phase 1/
 │   ├── index.html
 │   └── main.js
-│
 ├── Phase 2/
 │   └── ...
-│
-└── ...
+└── Phase 3/
+    └── ...
 ```
 
-- `README.md` — Main documentation, research notes, learning objectives, and project progress.
-- `Phase 1/index.html` — Webpage structure and interface for the initial experiments.
-- `Phase 1/main.js` — JavaScript logic for browser support checks, serial connection, and data reception.
-- `Phase 2/` — Reserved for the next stage of learning: browser-to-Arduino communication.
-
-The folder structure may expand as the project introduces styling, reusable functions, and more advanced experiments.
+**Note:** During the initial experiments, the Phase 2 functionality was added to the existing Phase 1 webpage and JavaScript files. The folders above illustrate the intended organization; the actual directory structure may differ.
 
 ---
 
-## 4. Phase 1 — Foundations
+# Phase 1 — Understanding Web Serial
 
-Phase 1 establishes the concepts required to understand how a browser communicates with physical hardware.
+## 1. What Is the Web Serial API?
 
-### 4.1 What Is the Web Serial API?
+The Web Serial API is a browser API that allows supported web applications to communicate with serial devices.
 
-The Web Serial API is a browser API that allows JavaScript applications to communicate with serial devices through a permission-controlled interface.
+Examples of devices that may expose a serial interface include:
 
-Without this API, a normal webpage cannot directly use the browser's serial-device interface in this manner.
+- Arduino boards.
+- Microcontrollers and development boards.
+- USB-to-serial adapters.
+- Certain laboratory instruments and embedded devices.
 
-The API provides access to serial ports, allowing applications to open connections and exchange data through readable and writable streams.
+Traditionally, communicating with serial hardware often required a desktop application written in languages such as C++, Python, or C#.
 
-A typical communication path is:
+The Web Serial API makes it possible to build browser-based interfaces using HTML, CSS, and JavaScript.
 
-```text
-Web Application
-      |
-      v
-JavaScript
-      |
-      v
-Web Serial API
-      |
-      v
-Computer Serial Interface
-      |
-      v
-USB Connection
-      |
-      v
-Arduino
-```
+However, the API provides the communication mechanism, not automatic understanding of the connected device. The webpage and firmware must still agree on the format and meaning of the transmitted data.
 
-The API handles access to the serial interface and the transfer of data. It does not automatically understand the meaning of a message or control a particular component. The application and Arduino firmware must agree on how commands and responses are interpreted.
+## 2. Understanding Serial Communication
 
-**Separation of responsibilities**
+Serial communication transmits data sequentially over a communication channel.
 
-| Component | Responsibility |
-|---|---|
-| HTML | Defines the webpage structure. |
-| CSS | Controls the appearance of the interface. |
-| JavaScript | Implements application logic. |
-| Web Serial API | Exposes serial communication to supported web applications. |
-| Arduino firmware | Processes commands and controls connected hardware. |
+In our project, the Arduino communicates with the computer through USB. The Uno's USB-to-serial interface bridges the computer's USB connection and the ATmega328P's UART interface.
 
-### 4.2 Understanding Serial Communication
+### Important Concepts
 
-Serial communication transmits data sequentially, one bit at a time over a communication channel.
+**Baud rate**
 
-In Arduino projects, serial communication is commonly used to print debugging information, transmit sensor readings, and receive commands.
-
-For example:
-
-```cpp
-void setup() {
-    Serial.begin(9600);
-}
-
-void loop() {
-    Serial.println("Hello from Arduino!");
-    delay(1000);
-}
-```
-
-This program initializes the Arduino's serial interface and sends a text message approximately once per second.
-
-On a typical Arduino Uno, the ATmega328P communicates through a UART interface connected to a USB-to-serial interface on the board. The computer communicates with the board through USB, while the browser interacts with the serial port exposed by the operating system.
-
-This distinction matters because USB and UART are not the same protocol, even though they are connected in the communication path.
-
-### 4.3 Baud Rate
-
-The baud rate describes the number of signal symbols transmitted per second.
-
-For a conventional UART connection using standard binary signalling, one symbol represents one bit.
-
-Arduino initializes serial communication using:
+The baud rate specifies the signaling rate of the serial connection. In our experiments, the browser opens the port at 9600 baud, matching the Arduino firmware.
 
 ```cpp
 Serial.begin(9600);
 ```
 
-The browser can open the corresponding port using:
+Both sides must use compatible serial settings.
 
-```javascript
-await port.open({ baudRate: 9600 });
-```
+**Transmit and receive**
 
-For typical UART communication, the settings must match.
+- TX means transmit.
+- RX means receive.
 
-Common baud rates include:
+The direction depends on which device is being considered. The Arduino's transmitted data becomes incoming data for the browser, and commands transmitted by the browser become incoming data for the Arduino.
 
-| Baud rate | Example application |
-|---|---|
-| 9600 | Basic Arduino communication and debugging |
-| 19200 | Embedded serial applications |
-| 115200 | Faster serial communication and development |
+**Bytes versus text**
 
-Baud rate is not identical to application-level throughput. UART framing consumes transmission time. For example, a typical 8-N-1 UART frame uses ten transmitted bits for each eight-bit data byte, limiting a 9600-baud connection to approximately 960 data bytes per second before other overhead.
+Serial communication transports bytes. When we transmit a string such as `Hello`, the text must be represented as bytes before it travels across the connection.
 
-### 4.4 TX and RX
+The receiving side must interpret those bytes according to an agreed encoding and message format.
 
-Two common serial signal names are:
+**Serial framing**
 
-- **TX — Transmit:** Sends data.
-- **RX — Receive:** Receives data.
+A typical UART configuration is 8-N-1:
 
-In a conventional UART connection between two devices, TX connects to the other device's RX, and vice versa.
+- 8 data bits.
+- No parity bit.
+- 1 stop bit.
 
-In a typical USB-connected Arduino Uno, the board's USB interface handles the connection to the computer, so separate TX/RX wiring is unnecessary for our initial experiments.
+The baud rate and other serial parameters must be compatible between the communicating endpoints.
 
-Communication can operate in both directions:
+## 3. Browser Permissions and Security
 
-```text
-Arduino  ────────>  Browser
-         Sensor data
+The Web Serial API is a browser capability with security restrictions.
 
-Arduino  <────────  Browser
-         Commands
-```
+A webpage cannot silently access arbitrary serial devices. The user generally needs to select the device through a browser-provided permission prompt.
 
-### 4.5 Bytes, Text, and Messages
+### Important Requirements
 
-Serial communication transfers bytes rather than abstract concepts.
+- Use a supported browser and operating system.
+- Run the page in a secure context, such as `localhost` or an appropriate HTTPS origin.
+- Call `navigator.serial.requestPort()` in response to a user action, such as clicking a Connect button.
+- Select the intended serial device in the browser's device chooser.
+- Ensure another application, such as Arduino Serial Monitor, is not occupying the serial port.
 
-Consider:
-
-```cpp
-Serial.println("25");
-```
-
-The text `"25"` is transmitted as the character bytes for `2` and `5`, followed by a line ending.
-
-This differs from transmitting the binary representation of the integer 25.
-
-The browser must decode incoming bytes and interpret them according to the application's message format.
-
-For example, a newline-delimited text protocol could send:
-
-```text
-25
-26
-27
-```
-
-Each line might represent a sensor reading.
-
-JavaScript can decode the incoming bytes using a `TextDecoder`:
-
-```javascript
-const decoder = new TextDecoder();
-```
-
-A crucial detail is that serial data arrives in chunks. One chunk is not guaranteed to contain exactly one complete message. More advanced applications must account for partial messages, multiple messages in one chunk, and message boundaries.
-
-### 4.6 Browser Permissions and Security
-
-Web Serial access is permission-controlled because it exposes communication with physical devices.
-
-The usual process is:
-
-1. JavaScript requests a serial port.
-2. The browser presents a device chooser.
-3. The user selects a device and authorizes access.
-4. JavaScript opens the selected port.
-5. The application exchanges data through the open connection.
-
-The request is made using:
-
-```javascript
-const port = await navigator.serial.requestPort();
-```
-
-This operation normally requires a user gesture, such as clicking a Connect button.
-
-The API is also restricted to secure contexts. HTTPS qualifies, and `localhost` is treated as a trustworthy local development context.
-
-A website cannot simply open every serial port without the browser's permission model.
-
-### 4.7 Understanding the Main API Objects
-
-The first experiments use several important API objects and methods.
-
-| API member | Purpose |
-|---|---|
-| `navigator.serial` | Entry point to the Web Serial API. |
-| `requestPort()` | Requests user selection of a serial port. |
-| `getPorts()` | Retrieves ports previously authorized for the current site. |
-| `SerialPort` | Represents a selected serial port. |
-| `port.open()` | Opens the serial connection. |
-| `port.readable` | Exposes incoming data as a readable stream. |
-| `port.writable` | Exposes outgoing data as a writable stream. |
-| `port.close()` | Closes the port when its streams and locks permit it. |
-
-Checking browser support:
+### Checking Browser Support
 
 ```javascript
 if ("serial" in navigator) {
-    console.log("Web Serial is supported.");
+  console.log("Web Serial API is supported.");
+} else {
+  console.log("Web Serial API is not supported.");
 }
 ```
 
-Opening a port:
+This checks whether the API is available. It does not establish a connection.
 
-```javascript
-await port.open({ baudRate: 9600 });
-```
-
-Reading incoming data requires a reader:
-
-```javascript
-const reader = port.readable.getReader();
-```
-
-Writing outgoing data will be explored in Phase 2.
-
-When using stream readers and writers, their locks must be managed correctly. A robust application also needs to handle disconnections, read errors, and cleanup.
-
-### 4.8 Browser and Hardware Requirements
-
-The initial experiments use Microsoft Edge on a desktop computer.
-
-Requirements include:
-
-- A browser that supports the Web Serial API.
-- A secure context, such as HTTPS or localhost.
-- A USB data cable.
-- An Arduino board exposing a compatible serial port.
-- Appropriate drivers where required.
-- A serial port that is not already occupied by another application.
-
-A local Python server can serve the project during development:
-
-```bash
-py -m http.server 8000
-```
-
-Then open:
-
-`http://localhost:8000/Phase%201/`
-
-Run the command from the mother folder. The space in `Phase 1` is encoded as `%20` in the URL.
-
-The Arduino IDE Serial Monitor should be closed before opening the same serial port in the browser.
-
----
-
-## 5. Phase 1 — Practical Experiments
-
-Phase 1 contains two completed experiments that progressively establish browser-to-hardware communication.
-
-### 5.1 Experiment 1: Establishing a Connection
-
-**Objective:** Detect Web Serial support, request access to the Arduino Uno, and open its serial port.
-
-Arduino firmware:
-
-```cpp
-void setup() {
-    Serial.begin(9600);
-    Serial.println("Arduino is ready!");
-}
-
-void loop() {
-}
-```
-
-The browser-side process is:
-
-1. Check whether `navigator.serial` is available.
-2. Wait for the user to click Connect.
-3. Request a serial port using `requestPort()`.
-4. Open the port at 9600 baud.
-5. Display the connection status.
-
-Core JavaScript operations:
+### Requesting a Serial Port
 
 ```javascript
 const port = await navigator.serial.requestPort();
-
-await port.open({ baudRate: 9600 });
 ```
 
-**Result:** Successfully connected the webpage running in Microsoft Edge to the Arduino Uno.
+The browser prompts the user to select an available serial device. This call must occur within an appropriate user-initiated interaction.
 
-This experiment established that the browser, permissions, USB connection, and serial-port opening process were functioning.
+### Opening the Port
 
-### 5.2 Experiment 2: Receiving Serial Data
+```javascript
+await port.open({
+  baudRate: 9600
+});
+```
 
-**Objective:** Receive continuous messages from the Arduino and display them in the webpage.
+The port is now configured for communication at the specified baud rate, assuming the operation succeeds.
 
-Arduino firmware:
+## 4. Web Serial API Objects
+
+| Object or method | Purpose |
+|---|---|
+| `navigator.serial` | Provides access to the Web Serial API. |
+| `requestPort()` | Prompts the user to select a serial port. |
+| `getPorts()` | Returns ports for which the origin has permission. |
+| `SerialPort` | Represents the selected serial connection. |
+| `port.open()` | Opens the selected port with the chosen settings. |
+| `port.readable` | Provides a stream for incoming data. |
+| `port.writable` | Provides a stream for outgoing data. |
+| `port.close()` | Closes the connection when stream locks have been released. |
+
+The readable and writable streams form the basis of our two-way communication system.
+
+---
+
+## 5. Experiment 1 — Connecting to Arduino
+
+### Objective
+
+Establish a serial connection between a webpage and an Arduino Uno.
+
+### Arduino Code
 
 ```cpp
 void setup() {
-    Serial.begin(9600);
+  Serial.begin(9600);
+  Serial.println("Arduino is ready!");
 }
 
 void loop() {
-    Serial.println("Hello from Arduino!");
-    delay(1000);
 }
 ```
 
-The Arduino transmits a message approximately once per second.
+The Arduino initializes serial communication and transmits a startup message.
 
-On the browser side, JavaScript obtains a reader from the serial port's readable stream:
+A startup message may be sent before the browser connects, so it is not guaranteed to appear in the webpage. This experiment primarily verifies the connection.
 
-```javascript
-const decoder = new TextDecoder();
-const reader = port.readable.getReader();
-```
+### Browser Connection
 
-It then reads incoming chunks:
+The webpage uses a Connect button to request and open the port.
 
 ```javascript
-const { value, done } = await reader.read();
+let port = null;
+
+async function connectToArduino() {
+  try {
+    port = await navigator.serial.requestPort();
+
+    await port.open({
+      baudRate: 9600
+    });
+
+    console.log("Connected to Arduino Uno!");
+  } catch (error) {
+    console.error("Connection error:", error);
+  }
+}
 ```
 
-The `value` contains received bytes, while `done` indicates whether the stream has ended.
+The connection function is a simplified example. In the project, it is called through a user-initiated button click.
 
-Incoming bytes can be decoded into text:
+### Results
 
-```javascript
-output.textContent += decoder.decode(value);
-```
+**Successful.** The webpage connected to the Arduino Uno through the browser's serial-port chooser.
 
-The resulting text is displayed in the webpage.
-
-**Result:** Successfully received and displayed continuous serial messages from the Arduino Uno in Microsoft Edge.
-
-This experiment demonstrated:
-
-- Continuous serial reception.
-- Asynchronous reading with `await`.
-- Stream-based data access.
-- Byte-to-text decoding.
-- Updating webpage content with incoming data.
-
-**Current limitation:** The initial implementation is a learning example. It does not yet implement a complete connection lifecycle, sophisticated message parsing, or robust reconnect handling.
+This established the foundation for receiving and transmitting serial data.
 
 ---
 
-## 6. Troubleshooting and Debugging
+## 6. Experiment 2 — Receiving Arduino Data
 
-Common problems encountered when developing Web Serial applications include:
+### Objective
 
-| Symptom | Possible cause |
+Continuously transmit messages from the Arduino and display the incoming data in the browser.
+
+### Arduino Code
+
+```cpp
+void setup() {
+  Serial.begin(9600);
+}
+
+void loop() {
+  Serial.println("Hello from Arduino!");
+  delay(1000);
+}
+```
+
+The Arduino sends a message once per second.
+
+### JavaScript Reading Function
+
+```javascript
+async function readFromArduino() {
+  const decoder = new TextDecoder();
+  const reader = port.readable.getReader();
+
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+
+      if (done) {
+        break;
+      }
+
+      output.textContent += decoder.decode(value);
+    }
+  } catch (error) {
+    console.error("Reading error:", error);
+  } finally {
+    reader.releaseLock();
+  }
+}
+```
+
+### How It Works
+
+**`TextDecoder()`**
+
+Converts received bytes into JavaScript text.
+
+**`port.readable.getReader()`**
+
+Acquires a reader for the serial input stream.
+
+**`reader.read()`**
+
+Waits asynchronously for incoming data. It returns a result containing a `value` and a `done` property.
+
+**`decoder.decode(value)`**
+
+Decodes the received byte chunk into text.
+
+**`reader.releaseLock()`**
+
+Releases the reader lock when the reading loop finishes or encounters an error.
+
+### Results
+
+**Successful.** The browser displayed the messages transmitted by the Arduino.
+
+This experiment demonstrated the Arduino-to-browser data path and introduced asynchronous stream reading.
+
+### Important Detail
+
+Serial data arrives in chunks. A single `reader.read()` call does not necessarily correspond to one complete message. More advanced projects must handle message boundaries explicitly.
+
+---
+
+# Phase 2 — Sending Commands and Controlling Hardware
+
+## 1. Sending Data to Arduino
+
+In Phase 1, we learned to receive data from the Arduino. Phase 2 introduced the reverse direction: transmitting commands from JavaScript to the microcontroller.
+
+The Web Serial API exposes the writable stream through:
+
+```javascript
+port.writable
+```
+
+To write data, we acquire a writer and encode our command into bytes.
+
+### Using TextEncoder
+
+```javascript
+const encoder = new TextEncoder();
+
+const data = encoder.encode("PING\n");
+```
+
+`TextEncoder` converts the JavaScript string into UTF-8 bytes.
+
+The newline character, `\n`, marks the end of the command in our custom protocol. It is an application-level choice rather than a requirement of the Web Serial API.
+
+### Reusable Command Function
+
+```javascript
+async function sendCommand(command) {
+  const encoder = new TextEncoder();
+  const writer = port.writable.getWriter();
+
+  try {
+    await writer.write(
+      encoder.encode(command + "\n")
+    );
+
+    console.log("Sent:", command);
+  } finally {
+    writer.releaseLock();
+  }
+}
+```
+
+### How It Works
+
+1. Create a text encoder.
+2. Acquire a writer from the writable stream.
+3. Encode the command and append a newline.
+4. Write the resulting bytes to the serial connection.
+5. Release the writer lock.
+
+The serial port must already be open, and its writable stream must be available.
+
+The `finally` block ensures that the writer lock is released even if writing fails.
+
+## 2. Experiment 1 — PING Command
+
+### Objective
+
+Send a command from the browser and verify that the Arduino receives it and transmits a response.
+
+### Arduino Code
+
+```cpp
+void setup() {
+  Serial.begin(9600);
+}
+
+void loop() {
+  if (Serial.available() > 0) {
+    String command = Serial.readStringUntil('\n');
+
+    command.trim();
+
+    Serial.print("Received: ");
+    Serial.println(command);
+  }
+}
+```
+
+### Important Functions
+
+| Function | Purpose |
 |---|---|
-| `navigator.serial` is unavailable | Unsupported browser or insecure context. |
-| Device chooser does not appear | Missing user gesture, permission restriction, or unsupported environment. |
-| Arduino does not appear in the chooser | USB cable, driver, or device connection issue. |
-| Port fails to open | Another application is using it, or the device cannot be opened. |
-| Connection works but no data appears | Firmware, baud rate, or reading logic issue. |
-| Received text is corrupted | Serial configuration or decoding issue. |
-| Application cannot close the port | A reader or writer may still hold a stream lock. |
+| `Serial.available()` | Reports how many received bytes are waiting. |
+| `Serial.readStringUntil('\n')` | Reads characters until a newline or timeout. |
+| `command.trim()` | Removes leading and trailing whitespace. |
+| `Serial.println()` | Sends text followed by a newline. |
 
-Debugging should proceed layer by layer: browser support, user permission, port selection, connection opening, data reception, and message interpretation.
+### Browser Command
 
-This prevents unrelated issues from being treated as a single failure.
+```javascript
+await sendCommand("PING");
+```
+
+### Expected Response
+
+```text
+Received: PING
+```
+
+The existing browser reading loop displays the response.
+
+### Results
+
+**Successful.** The browser transmitted `PING`, the Arduino processed it, and the Arduino sent the response back to the webpage.
+
+This experiment verified two-way serial communication.
+
+### Firmware Consideration
+
+`readStringUntil()` is useful for a beginner experiment, but it can block while waiting for the terminating newline or until its timeout expires. In later embedded projects, a non-blocking character-buffer parser can provide more predictable responsiveness.
+
+## 3. Designing a Command Protocol
+
+A communication protocol defines how devices format, interpret, and respond to messages.
+
+For our project, we introduced a simple newline-delimited text protocol.
+
+| Command | Meaning |
+|---|---|
+| `PING` | Test communication. |
+| `LED_ON` | Turn the LED on. |
+| `LED_OFF` | Turn the LED off. |
+
+The browser sends the command followed by a newline.
+
+For example:
+
+```text
+LED_ON\n
+```
+
+The Arduino reads the incoming bytes, reconstructs the command, and compares it with the commands supported by the firmware.
+
+Both sides must agree on command spelling and message termination. Otherwise, the receiver may fail to recognize a valid command.
+
+## 4. Experiment 2 — Browser-Based LED Control
+
+### Objective
+
+Control a physical LED through webpage buttons.
+
+### Hardware Components
+
+- Arduino Uno.
+- LED.
+- 220 Ω resistor or another suitable current-limiting resistor.
+- Breadboard and jumper wires.
+
+### Circuit Connections
+
+| Component | Connection |
+|---|---|
+| Arduino digital pin 8 | Resistor in series with the LED. |
+| LED anode | Toward the resistor and pin 8. |
+| LED cathode | Arduino GND. |
+
+The resistor limits the current flowing through the LED.
+
+### Arduino Firmware
+
+```cpp
+const byte LED_PIN = 8;
+
+void setup() {
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, LOW);
+
+  Serial.begin(9600);
+}
+
+void loop() {
+  if (Serial.available() > 0) {
+    String command = Serial.readStringUntil('\n');
+    command.trim();
+
+    if (command == "LED_ON") {
+      digitalWrite(LED_PIN, HIGH);
+      Serial.println("ACK:LED_ON");
+    }
+    else if (command == "LED_OFF") {
+      digitalWrite(LED_PIN, LOW);
+      Serial.println("ACK:LED_OFF");
+    }
+    else {
+      Serial.print("ERROR:UNKNOWN_COMMAND:");
+      Serial.println(command);
+    }
+  }
+}
+```
+
+### Firmware Explanation
+
+**`const byte LED_PIN = 8;`**
+
+Defines the pin connected to the LED. The `const` keyword prevents reassignment of this variable.
+
+**`pinMode(LED_PIN, OUTPUT);`**
+
+Configures pin 8 as an output.
+
+**`digitalWrite(LED_PIN, HIGH);`**
+
+Sets the digital output HIGH, turning on the LED in this circuit.
+
+**`digitalWrite(LED_PIN, LOW);`**
+
+Sets the output LOW, turning the LED off.
+
+**Command comparison**
+
+The `if` and `else if` statements compare the received command against the supported command names.
+
+**Acknowledgements**
+
+The firmware sends `ACK:LED_ON` or `ACK:LED_OFF` after executing the corresponding output instruction. `ACK` means acknowledgement.
+
+These responses confirm that the firmware recognized and processed the command. They do not independently measure whether the physical LED is actually illuminated.
+
+Unknown commands produce an error response, helping with debugging.
+
+### HTML Interface
+
+The webpage provides buttons for testing communication and controlling the LED.
+
+```html
+<button id="pingButton" disabled>Send PING</button>
+
+<button id="ledOnButton" disabled>LED ON</button>
+
+<button id="ledOffButton" disabled>LED OFF</button>
+```
+
+The buttons are initially disabled until the serial connection has been established.
+
+### JavaScript Button References
+
+```javascript
+const pingButton = document.getElementById("pingButton");
+
+const ledOnButton = document.getElementById("ledOnButton");
+
+const ledOffButton = document.getElementById("ledOffButton");
+```
+
+### Button Event Listeners
+
+```javascript
+pingButton.addEventListener("click", async () => {
+  await sendCommand("PING");
+});
+
+ledOnButton.addEventListener("click", async () => {
+  await sendCommand("LED_ON");
+});
+
+ledOffButton.addEventListener("click", async () => {
+  await sendCommand("LED_OFF");
+});
+```
+
+Each button calls `sendCommand()` with its corresponding command.
+
+After the serial port opens successfully, the buttons are enabled:
+
+```javascript
+pingButton.disabled = false;
+ledOnButton.disabled = false;
+ledOffButton.disabled = false;
+```
+
+These statements belong inside the successful connection handler, after the port has opened.
+
+### Results
+
+**Successful.** The webpage buttons controlled the physical LED connected to Arduino digital pin 8.
+
+The browser could transmit commands, the Arduino could interpret them, and the firmware returned acknowledgements to the browser.
+
+## 5. Communication Flow
+
+The completed project follows this sequence:
+
+1. The user clicks a button on the webpage.
+2. JavaScript selects a command.
+3. `TextEncoder` converts the command into bytes.
+4. `port.writable` transmits the bytes to the Arduino.
+5. The Arduino receives the bytes through its serial interface.
+6. The firmware reconstructs and interprets the command.
+7. The Arduino changes its digital output.
+8. The firmware transmits an acknowledgement.
+9. The browser receives the response through `port.readable`.
+10. The existing JavaScript reader decodes the bytes into text for display.
+
+This is the foundation of a browser-based hardware-control interface.
 
 ---
 
-## 7. Current Progress
+# Troubleshooting
 
-Phase 1 is complete.
+## The Webpage Cannot Connect
 
-| Experiment | Objective | Status |
-|---|---|---|
-| 1 | Establish a browser-to-Arduino serial connection | Completed |
-| 2 | Receive and display Arduino messages | Completed |
+- Confirm that the Arduino is connected using a USB data cable.
+- Confirm that the browser supports the Web Serial API.
+- Run the webpage from `localhost` or another secure context.
+- Check that the correct serial port is selected.
+- Close Arduino Serial Monitor or other software that may be using the port.
 
-The following concepts have been covered:
+## The Arduino Receives No Commands
 
-- Web Serial API fundamentals.
-- Serial communication and baud rate.
-- TX/RX and data representation.
-- Browser permissions and secure contexts.
-- Serial port objects and streams.
-- Browser, USB, and development-environment requirements.
-- Initial connection and data-reception experiments.
+- Confirm that the serial port is open.
+- Check that the baud rate matches on both sides.
+- Verify that the JavaScript command function is called.
+- Confirm that the command includes the expected newline.
+- Check for JavaScript errors in the browser console.
 
-The next step is to extend the application from receiving messages to sending commands.
+## The LED Does Not Turn On
+
+- Verify the LED polarity.
+- Check the resistor and breadboard connections.
+- Confirm that the LED is connected to digital pin 8 and GND as specified.
+- Ensure the LED-control sketch was uploaded successfully.
+- Verify that the browser is sending `LED_ON` exactly.
+
+## The Arduino Receives Commands but Does Not Recognize Them
+
+- Check command spelling and capitalization.
+- Confirm that the firmware removes unwanted whitespace.
+- Ensure that the newline delimiter is handled correctly.
+- Inspect the browser console and serial output for errors.
+
+## The Arduino Responds, but the Webpage Does Not Display the Response
+
+- Confirm that the reading loop starts after the serial connection opens.
+- Verify that `port.readable` is available.
+- Check for reader errors in the browser console.
+- Ensure another reader has not locked the readable stream.
+- Remember that serial data can arrive in chunks rather than as complete messages.
+
+## JavaScript: Assignment to Constant Variable
+
+This error occurs when a variable declared with `const` is reassigned.
+
+Incorrect:
+
+```javascript
+const command = "LED_ON";
+
+command = "LED_OFF";
+```
+
+Correct when reassignment is needed:
+
+```javascript
+let command = "LED_ON";
+
+command = "LED_OFF";
+```
+
+Use `const` when the variable binding should not be reassigned, and `let` when reassignment is required.
 
 ---
 
-## 8. Phase 2 — Two-Way Communication
+# Lessons Learned
 
-Phase 2 will focus on sending commands from the browser to the Arduino and receiving responses.
+## Phase 1
 
-Planned topics include:
+- What the Web Serial API does.
+- How serial communication works.
+- Why baud rates must match.
+- How browser permissions and secure contexts affect device access.
+- How to request and open a serial port.
+- How to read and decode data from the Arduino.
 
-1. Understanding `port.writable` and stream writers.
-2. Encoding JavaScript strings into bytes with `TextEncoder`.
-3. Sending commands from browser buttons.
-4. Receiving Arduino acknowledgements.
-5. Designing a simple serial message protocol.
-6. Handling line endings and parsing complete messages.
-7. Improving error handling and connection cleanup.
+## Phase 2
 
-The first target will be a browser button that sends an `LED_ON` or `LED_OFF` command to the Arduino, with the Arduino responding to confirm the action.
-
-This will establish the foundation for browser-controlled electronics projects and interactive hardware dashboards.
-
----
-
-## 9. References and Further Reading
-
-The following official documentation provides a foundation for further research:
-
-- [MDN Web Docs — Web Serial API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Serial_API)
-- [MDN — Serial API specification overview](https://developer.mozilla.org/en-US/docs/Web/API/Serial)
-- [WICG — Web Serial API specification and explainer](https://github.com/WICG/serial)
-- [Arduino — Serial reference](https://docs.arduino.cc/language-reference/en/functions/communication/serial/)
-- [MDN — TextDecoder](https://developer.mozilla.org/en-US/docs/Web/API/TextDecoder)
-- [MDN — ReadableStream](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream)
-- [MDN — Secure contexts](https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts)
+- How to transmit data through `port.writable`.
+- How to use `TextEncoder` to convert text into bytes.
+- How to acquire and release a writable stream lock.
+- How the Arduino receives data using its serial interface.
+- How to design a simple text-based command protocol.
+- How to control a physical LED through webpage buttons.
+- How to send acknowledgements and error messages.
+- How reading and writing can operate independently on the same serial connection.
 
 ---
 
-**Project philosophy:** Learn the underlying concepts, test them against real hardware, document the results, and build progressively more capable applications. The goal is not merely to make a connection work, but to understand why it works and how to extend it reliably.
+# Future Roadmap
+
+## Phase 3 — Improving the Browser Interface
+
+Planned topics:
+
+- Displaying Arduino acknowledgements in a structured interface.
+- Improving status messages and connection feedback.
+- Showing the current LED state in the webpage.
+- Handling errors and serial disconnections.
+- Making the interface easier to extend with more controls.
+
+## Future Phases
+
+Possible extensions include:
+
+- Non-blocking serial command parsing.
+- Controlling multiple outputs.
+- Reading sensors and displaying live measurements.
+- Sending structured data between the browser and firmware.
+- Improving reconnection and stream-lock management.
+- Building a more complete browser-based hardware dashboard.
+
+These are planned extensions rather than completed features.
+
+---
+
+# Resources
+
+- [MDN — Web Serial API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Serial_API)
+- [MDN — TextEncoder](https://developer.mozilla.org/en-US/docs/Web/API/TextEncoder)
+- [MDN — Streams API](https://developer.mozilla.org/en-US/docs/Web/API/Streams_API)
+- [Arduino Documentation](https://docs.arduino.cc/)
+- [Google Chrome — Serial API Explainer](https://developer.chrome.com/docs/capabilities/serial)
+
+---
+
+## Project Status
+
+- [x] Phase 1 — Establishing a browser-to-Arduino connection.
+- [x] Phase 1 — Receiving serial messages in the browser.
+- [x] Phase 2 — Sending commands from the browser.
+- [x] Phase 2 — Interpreting commands in Arduino firmware.
+- [x] Phase 2 — Controlling a physical LED through webpage buttons.
+- [ ] Phase 3 — Improving the interface and communication feedback.
+
+**Learning by building, testing, documenting, and improving.**
